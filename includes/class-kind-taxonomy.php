@@ -144,7 +144,7 @@ final class Kind_Taxonomy {
 			'show_in_nav_menu'   => true,
 			'show_in_rest'       => false,
 			'show_tagcloud'      => true,
-			'show_in_quick_edit' => false,
+			'show_in_quick_edit' => true,
 			'show_admin_column'  => true,
 			'meta_box_cb'        => array( 'Kind_Taxonomy', 'select_metabox' ),
 			'rewrite'            => true,
@@ -430,7 +430,7 @@ final class Kind_Taxonomy {
 				'description'     => __( 'short content: a post or status update with just plain content and typically without a title', 'indieweb-post-kinds' ),
 				'description-url' => 'http://indieweb.org/note',
 				'title'           => false, // Should this kind have an explicit title
-				'show'            => false, // Show in Settings
+				'show'            => true, // Show in Settings
 			)
 		);
 		register_post_kind(
@@ -499,7 +499,7 @@ final class Kind_Taxonomy {
 				'format'          => 'link', // Post Format that maps to this
 				'description'     => __( 'storing a link/bookmark for personal use or sharing with others', 'indieweb-post-kinds' ),
 				'description-url' => 'http://indieweb.org/bookmark',
-				'title'           => false, // Should this kind have an explicit title
+				'title'           => true, // Should this kind have an explicit title
 				'show'            => true, // Show in Settings
 			)
 		);
@@ -513,7 +513,7 @@ final class Kind_Taxonomy {
 				'format'          => 'image', // Post Format that maps to this
 				'description'     => __( 'a post with an embedded image/photo as its primary focus', 'indieweb-post-kinds' ),
 				'description-url' => 'http://indieweb.org/photo',
-				'title'           => false, // Should this kind have an explicit title
+				'title'           => true, // Should this kind have an explicit title
 				'show'            => true, // Show in Settings
 			)
 		);
@@ -527,7 +527,7 @@ final class Kind_Taxonomy {
 				'format'          => 'video', // Post Format that maps to this
 				'description'     => __( 'a post with an embedded video as its primary focus', 'indieweb-post-kinds' ),
 				'description-url' => 'http://indieweb.org/video',
-				'title'           => false, // Should this kind have an explicit title
+				'title'           => true, // Should this kind have an explicit title
 				'show'            => true, // Show in Settings
 			)
 		);
@@ -541,7 +541,7 @@ final class Kind_Taxonomy {
 				'format'          => 'audio', // Post Format that maps to this
 				'description'     => __( 'a post with an embedded audio file as its primary focus', 'indieweb-post-kinds' ),
 				'description-url' => 'http://indieweb.org/audio',
-				'title'           => false, // Should this kind have an explicit title
+				'title'           => true, // Should this kind have an explicit title
 				'show'            => true, // Show in Settings
 			)
 		);
@@ -583,7 +583,7 @@ final class Kind_Taxonomy {
 				'format'          => 'audio', // Post Format that maps to this
 				'description'     => __( 'listening to audio; sometimes called a scrobble', 'indieweb-post-kinds' ),
 				'description-url' => 'http://indieweb.org/listen',
-				'title'           => false, // Should this kind have an explicit title
+				'title'           => true, // Should this kind have an explicit title
 				'show'            => true, // Show in Settings
 			)
 		);
@@ -597,7 +597,7 @@ final class Kind_Taxonomy {
 				'format'          => 'video', // Post Format that maps to this
 				'description'     => __( 'watching a movie, television show, online video, play or other visual-based event', 'indieweb-post-kinds' ),
 				'description-url' => 'http://indieweb.org/watch',
-				'title'           => false, // Should this kind have an explicit title
+				'title'           => true, // Should this kind have an explicit title
 				'show'            => true, // Show in Settings
 			)
 		);
@@ -668,7 +668,7 @@ final class Kind_Taxonomy {
 				'description'     => __( 'some form of physical activity or workout (examples: walk, run, cycle, hike, yoga, etc.)', 'indieweb-post-kinds' ),
 				'description-url' => 'https://indieweb.org/exercise',
 				'title'           => false, // Should this kind have an explicit title
-				'show'            => false, // Show in Settings
+				'show'            => true, // Show in Settings
 			)
 		);
 		register_post_kind(
@@ -681,8 +681,8 @@ final class Kind_Taxonomy {
 				'format'          => '', // Post Format that maps to this
 				'description'     => __( 'represents a geographic journey', 'indieweb-post-kinds' ),
 				'description-url' => 'https://indieweb.org/trip',
-				'title'           => false, // Should this kind have an explicit title
-				'show'            => false, // Show in Settings
+				'title'           => true, // Should this kind have an explicit title
+				'show'            => true, // Show in Settings
 			)
 		);
 		register_post_kind(
@@ -710,7 +710,7 @@ final class Kind_Taxonomy {
 				'description'     => __( 'what you are eating, perhaps for a food dairy', 'indieweb-post-kinds' ),
 				'description-url' => 'https://indieweb.org/food',
 				'title'           => false, // Should this kind have an explicit title
-				'show'            => false, // Show in Settings
+				'show'            => true, // Show in Settings
 			)
 		);
 		register_post_kind(
@@ -724,7 +724,7 @@ final class Kind_Taxonomy {
 				'description'     => __( 'what you are drinking, perhaps for a food dairy', 'indieweb-post-kinds' ),
 				'description-url' => 'https://indieweb.org/food',
 				'title'           => false, // Should this kind have an explicit title
-				'show'            => false, // Show in Settings
+				'show'            => true, // Show in Settings
 			)
 		);
 		register_post_kind(
@@ -738,7 +738,7 @@ final class Kind_Taxonomy {
 				'description'     => __( 'indicating you are now following or subscribing to another person`s activities online', 'indieweb-post-kinds' ),
 				'description-url' => 'https://indieweb.org/follow',
 				'title'           => false, // Should this kind have an explicit title
-				'show'            => false, // Show in Settings
+				'show'            => true, // Show in Settings
 			)
 		);
 		register_post_kind(
@@ -765,7 +765,7 @@ final class Kind_Taxonomy {
 				'format'          => 'status', // Post Format that maps to this
 				'description'     => __( 'reading a book, magazine, newspaper, other physical document, or online post', 'indieweb-post-kinds' ),
 				'description-url' => 'https://indieweb.org/read',
-				'title'           => false, // Should this kind have an explicit title
+				'title'           => true, // Should this kind have an explicit title
 				'show'            => true, // Show in Settings
 			)
 		);
@@ -836,7 +836,7 @@ final class Kind_Taxonomy {
 				'description'     => __( 'Question is a post type for soliciting answer replies, which are then typically up/down voted by others and then displayed underneath the question post ordered by highest positive vote count rather than time ordered.', 'indieweb-post-kinds' ),
 				'description-url' => 'https://indieweb.org/question',
 				'title'           => false, // Should this kind have an explicit title
-				'show'            => false, // Show in Settings
+				'show'            => true, // Show in Settings
 			)
 		);
 		register_post_kind(
@@ -850,7 +850,7 @@ final class Kind_Taxonomy {
 				'description'     => __( 'Sleep is a passive metrics post type that indicates how much time (and often a graph of how deeply) a person has slept.', 'indieweb-post-kinds' ),
 				'description-url' => 'https://indieweb.org/sleep',
 				'title'           => false, // Should this kind have an explicit title
-				'show'            => false, // Show in Settings
+				'show'            => true, // Show in Settings
 			)
 		);
 		register_post_kind(
@@ -877,8 +877,8 @@ final class Kind_Taxonomy {
 				'format'          => 'status', // Post Format that maps to this
 				'description'     => __( 'Purchases, gifts, found things, or objects donated', 'indieweb-post-kinds' ),
 				'description-url' => 'http://indieweb.org/acquisition',
-				'title'           => false, // Should this kind have an explicit title
-				'show'            => false, // Show in Settings
+				'title'           => true, // Should this kind have an explicit title
+				'show'            => true, // Show in Settings
 			)
 		);
 	}
@@ -1141,5 +1141,3 @@ final class Kind_Taxonomy {
 		return $return;
 	}
 } // End Class Kind_Taxonomy
-
-

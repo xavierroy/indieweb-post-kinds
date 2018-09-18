@@ -42,12 +42,18 @@ if ( ! $embed ) {
 </header>
 <?php
 if ( $cite ) {
-	if ( $embed ) {
-		echo sprintf( '<blockquote class="e-summary">%1s</blockquote>', $embed );
-	} elseif ( array_key_exists( 'summary', $cite ) ) {
-		echo sprintf( '<blockquote class="e-summary">%1s</blockquote>', $cite['summary'] );
-	}
-}
+    if ( $embed ) {
+        echo sprintf( '<blockquote class="e-summary">%1s</blockquote>', $embed );
+    } elseif ( array_key_exists( 'summary', $cite ) ) {
+        echo sprintf( '<blockquote class="e-summary">%1s</blockquote>', $cite['summary'] );
+    }
+    }
+    if ( isset( $_POST['cite_tags'] ) ) {
+    $cite['category'] = array_filter( explode( ';', $_POST['cite_tags'] ) );
+    }
+    echo '<footer><p>Machine tags for this post: <br />';
+    echo sprintf ( '<small><span class="machinetags">%1s</span></small></p></footer>', implode (", ",$cite['category']) );
+
 
 // Close Response
 ?>

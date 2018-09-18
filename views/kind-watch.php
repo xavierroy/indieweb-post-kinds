@@ -23,7 +23,20 @@ if ( ! $duration ) {
 <section class="response u-watch-of h-cite">
 <header>
 <?php
-echo Kind_Taxonomy::get_before_kind( 'watch' );
+$category = get_the_category();
+switch ($category) {
+		case in_category('movies'):
+								echo '<strong><i class="fa fa-film fa-2x"></i></strong>&nbsp;';
+								break;
+						case in_category('television'):
+								echo '<strong><i class="fa fa-tv fa-2x"></i></strong>&nbsp;';
+								break;
+						case in_category('sports'):
+								echo '<strong><i class="fa fa-trophy fa-2x"></i></strong>&nbsp;';
+								break;
+						default:
+								echo Kind_Taxonomy::get_before_kind( 'watch' );
+				}
 if ( ! $embed ) {
 	if ( $title ) {
 		echo $title;

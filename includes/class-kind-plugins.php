@@ -13,13 +13,51 @@ class Kind_Plugins {
 		add_action( 'after_micropub', array( 'Kind_Plugins', 'micropub_set_kind' ), 9, 2 );
 		add_action( 'after_micropub', array( 'Kind_Plugins', 'post_formats' ), 11, 2 );
 		add_filter( 'before_micropub', array( 'Kind_Plugins', 'micropub_parse' ), 11 );
+		add_filter( 'micropub_query', array( 'Kind_Plugins', 'micropub_query_source' ), 11, 2 );
 		// Override Post Type in Semantic Linkbacks.
 		add_filter( 'semantic_linkbacks_post_type', array( 'Kind_Plugins', 'semantic_post_type' ), 11, 2 );
 
 		// Remove the Automatic Post Generation that the Micropub Plugin Offers
-		remove_filter( 'micropub_post_content', array( 'Micropub_Render', 'generate_post_content' ), 1, 2 );
-		remove_filter( 'micropub_post_content', array( 'Micropub_Plugin', 'generate_post_content' ), 1, 2 );
+		if ( class_exists( 'Micropub_Render' ) ) {
+			if ( has_filter( 'micropub_post_content', array( 'Micropub_Render', 'generate_post_content' ) ) ) {
+				remove_filter( 'micropub_post_content', array( 'Micropub_Render', 'generate_post_content' ), 1, 2 );
+			}
+		} elseif ( class_exists( 'Micropub_Plugin' ) ) {
+			if ( has_filter( 'micropub_post_content', array( 'Micropub_Plugin', 'generate_post_content' ) ) ) {
+				remove_filter( 'micropub_post_content', array( 'Micropub_Plugin', 'generate_post_content' ), 1, 2 );
+			}
+		}
 
+	}
+
+	public static function micropub_query_source( $resp, $input ) {
+		// Only modify source
+		if ( 'source' !== $input['q'] ) {
+			return $resp;
+		}
+		if ( array_key_exists( 'url', $input ) ) {
+			$post_id = url_to_postid( static::$input['url'] );
+			if ( ! $post_id ) {
+				return $resp;
+			}
+			$mf2_post = new MF2_Post( $post_id );
+			$resp     = $mf2_post->get();
+		} else {
+			$numberposts = ifset( $input['limit'], 10 );
+			$posts       = get_posts(
+				array(
+					'posts_per_page' => $numberposts,
+					'fields'         => 'ids',
+				)
+			);
+			$resp        = array();
+			foreach ( $posts as $post ) {
+				$mf2_post = new MF2_Post( $post );
+				$resp[]   = jf2_to_mf2( $mf2_post->get() );
+			}
+			$resp = array( 'items' => $resp );
+		}
+		return $resp;
 	}
 
 	// Replaces need for Replacing the Entire Excerpt

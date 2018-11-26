@@ -44,6 +44,35 @@ final class Kind_Taxonomy {
 
 		add_filter( 'the_title', array( 'Kind_Taxonomy', 'the_title' ), 9, 2 );
 
+		add_action( 'rest_api_init', array( 'Kind_Taxonomy', 'rest_kind' ) );
+
+		add_filter( 'embed_template_hierarchy', array( 'Kind_Taxonomy', 'embed_template_hierarchy' ) );
+	}
+
+	public static function rest_kind() {
+		register_rest_field(
+			'post',
+			'kind',
+			array(
+				'get_callback'    => array( 'Kind_Taxonomy', 'get_post_kind_slug' ),
+				'update_callback' => array( 'Kind_Taxonomy', 'set_rest_post_kind' ),
+				'schema'          => array(
+					'kind' => __( 'Post Kind', 'indieweb-post-kinds' ),
+					'type' => 'string',
+				),
+			)
+		);
+	}
+
+	public static function embed_template_hierarchy( $templates ) {
+		$object = get_queried_object();
+		if ( ! empty( $object->post_type ) ) {
+			$post_kind = get_post_kind( $object );
+			if ( $post_kind ) {
+				array_unshift( $templates, "embed-{$object->post_type}-{$post_kind}.php" );
+			}
+		}
+		return $templates;
 	}
 
 	public static function the_title( $title, $post_id ) {
@@ -121,6 +150,26 @@ final class Kind_Taxonomy {
 			'query_var'          => true,
 		);
 		register_taxonomy( 'kind', array( 'post' ), $args );
+		add_rewrite_rule(
+			'kind/([a-z]+)/([0-9]{4})/?$',
+			'index.php?year=$matches[2]&kind=$matches[1]',
+			'top'
+		);
+		add_rewrite_rule(
+			'kind/([a-z]+)/([a-z]+)/?$',
+			'index.php?tag=$matches[2]&kind=$matches[1]',
+			'top'
+		);
+		add_rewrite_rule(
+			'kind/([a-z]+)/([0-9]{4})/([0-9]{2})/?$',
+			'index.php?year=$matches[2]&monthnum=$matches[3]&kind=$matches[1]',
+			'top'
+		);
+		add_rewrite_rule(
+			'kind/([a-z]+)/([0-9]{4})/([0-9]{2})/([0-9]{2})/?$',
+			'index.php?year=$matches[2]&monthnum=$matches[3]&day=$matches[4]&kind=$matches[1]',
+			'top'
+		);
 	}
 
 	/**
@@ -208,7 +257,17 @@ final class Kind_Taxonomy {
 				$return[] = self::get_kind_info( $term->slug, 'name' );
 			}
 			if ( $return ) {
-				return join( ', ', $return );
+				$title = join( ', ', $return );
+			}
+			if ( is_year() ) {
+				/* translators: 1: Kinds. Yearly archive title. 2: Year */
+				return sprintf( __( '%1$1s: %2$2s', 'indieweb-post-kinds' ), $title, get_the_date( _x( 'Y', 'yearly archives date format', 'indieweb-post-kinds' ) ) );
+			} elseif ( is_month() ) {
+				/* translators: Monthly archive title. 1: Month name and year */
+				return sprintf( __( '%1$1s: %2$2s', 'indieweb-post-kinds' ), $title, get_the_date( _x( 'F Y', 'monthly archives date format', 'indieweb-post-kinds' ) ) );
+			} elseif ( is_day() ) {
+				/* translators: Daily archive title. 1: Date */
+				return sprintf( __( '%1$1s: %2$2s', 'indieweb-post-kinds' ), $title, get_the_date( _x( 'F j, Y', 'daily archives date format', 'indieweb-post-kinds' ) ) );
 			}
 		}
 		return $title;
@@ -929,6 +988,9 @@ final class Kind_Taxonomy {
 	}
 
 	public static function get_post_kind_slug( $post = null ) {
+		if ( is_array( $post ) && isset( $post['id'] ) ) {
+			$post = $post['id'];
+		}
 		$post = get_post( $post );
 		if ( ! $post ) {
 			return false; }
@@ -984,6 +1046,12 @@ final class Kind_Taxonomy {
 			return new WP_Error( 'invalid_kind', __( 'Invalid Kind', 'indieweb-post-kinds' ) );
 		}
 		return wp_set_post_terms( $post->ID, $kind, 'kind' );
+	}
+
+	public static function set_rest_post_kind( $kind, $post_array ) {
+		if ( isset( $post_array['id'] ) ) {
+			self::set_post_kind( $post_array['id'], $kind );
+		}
 	}
 
 	public static function before_kind() {

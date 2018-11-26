@@ -1,7 +1,7 @@
 === Post Kinds ===
 Contributors: dshanske
 Tags: indieweb, interaction, posts, webmention, share, like, scrobble
-Stable tag: 3.1.0
+Stable tag: 3.1.2
 Requires at least: 4.7
 Requires PHP: 5.3
 Tested up to: 4.9.8
@@ -42,14 +42,17 @@ responsibilities to responsibly use this data, and to remove information on requ
 
 == Upgrade Notice ==
 
+= 3.1.1 =
+* Bugs were reported in 3.1.0 and this is a quick fix for the ones initially reported
+
 = 3.1.0 =
 
-Custom post kind registration, previously done by filter, is now done by registration. This will cause issues who had been using the filter. Due to a particular
+* Custom post kind registration, previously done by filter, is now done by registration. This will cause issues who had been using the filter. Due to a particular
 user who created many custom kinds, decided to create a better way to do this. 
-
-Posting capability via custom REST API endpoint has been removed due improved Micropub support
-
-Kind_Meta class deprecated as promised
+* Posting capability via custom REST API endpoint has been removed due improved Micropub support
+* Kind_Meta class deprecated as promiseda
+* Media Data is no longer stored in the post instead being stored in the attachment
+* This version introduces a lot of base changes. Before making additional ones will be releasing this version so that things can stabilize
 
 = 3.0.0 = 
 
@@ -177,6 +180,8 @@ interface at this time.
 Post Kinds automatically handles the display of archives of individual types. So to view all the posts marked as "note", for example, one could visit the URL http://www.YOURSITE.COM/kind/note/. 
 Simply replace YOURSITE.COM with your particular site name and the particular post kind name to access the others.
 
+You can also add the date /kind/note/2018/12/24 to see date-based archives. Or /kind/note/tag using the slug of a tag to see an archive of tagged posts of a specific kind
+
 = Do you have RSS feeds for each kind? = 
 
 Post Kinds also automatically handles RSS feeds which can be made available or subscribed to for any of the particular kinds. The RSS feed for all the posts marked as "note", for example could be found at either the URL `http://www.example.com/kind/note/feed` or  `http://www.example.com/feed/?kind=note` (if one doesn't have pretty permalinks enabled). Others can be obtained by replacing "note" with the other kinds.
@@ -211,7 +216,19 @@ The functions `has_post_kind`, `set_post_kind`, and `set_post_kind` will allow y
 
 == Changelog ==
 
-= 3.1.0 ( 2018-xx-xx ) =
+= 3.1.2 ( 2018-11-24 ) =
+* Date archive view for kind archives
+* Tag archive view for kind archives
+* The Embed template allows for a template in the theme based on post format. This allows post kinds as an alternate
+* Take over source queries for Micropub
+
+= 3.1.1 ( 2018-10-14 ) =
+* Fix save issues for Post Kind
+* Fix auto-import for bookmarklets
+* Fix author showing anonymously
+* JSONFeed enhanced to use external url property
+
+= 3.1.0 ( 2018-10-13 ) =
 * Missing Add New Note in Dashbar
 * Add itinerary to post type discovery
 * Do not return a failed attempt to parse a URL
@@ -231,6 +248,12 @@ The functions `has_post_kind`, `set_post_kind`, and `set_post_kind` will allow y
 * An instance of the MF2_Post class($mf2_post), the kind($kind), the mf2 property associated with that kind($type), as well as initializing $embed and $url are available to all views 
 rather than having them instantiate them individually. This means some overhead.
 * The MF2_Post class now caches the generated data in the event it is requested multiple times in a pageload.
+* The MF2 post class now checks the photo property only for remote URLs and sideloads them.
+* As of this version, Parse This is now a separate repository and all feature updates will be noted as of the next version in its separate changelog.
+* Kind now appears in REST API post controller
+* Photo Video and Audio now use the WordPress media selector and the citation should now be added in the attachment, as opposed to inside the post
+* Photo Video and Audio presentation have new functions for display that are currently wrappers around the WordPress functions but hoping to add more customization in future
+
 
 = 3.0.9 ( 2018-06-23 ) =
 * If title is empty show start of excerpt in admin only

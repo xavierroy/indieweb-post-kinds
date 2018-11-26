@@ -120,13 +120,19 @@ class Kind_View {
 	}
 
 	public static function json_feed_item( $feed_item, $post ) {
-		$jf2 = get_post_jf2meta( $post, false );
-		// blacklist properties duplicated by JSONFeed spec
-		$blacklist = array( 'published', 'updated', 'type' );
-		foreach ( $blacklist as $b ) {
-			unset( $jf2[ $b ] );
+		$mf2_post = new MF2_Post( $post );
+		$kind     = $mf2_post->get( 'kind', true );
+		$type     = Kind_Taxonomy::get_kind_info( $kind, 'property' );
+		$cite     = $mf2_post->fetch( $type );
+		if ( wp_is_numeric_array( $cite ) ) {
+			$url = array_pop( $cite );
+		} else {
+			$url = ifset( $cite['url'] );
 		}
-		return array_merge( $feed_item, $jf2 );
+		if ( $url ) {
+			$feed_item['external_url'] = $url;
+		}
+		return $feed_item;
 	}
 
 
@@ -304,8 +310,11 @@ class Kind_View {
 		if ( array_key_exists( 'url', $author ) && is_array( $author['url'] ) ) {
 			$author['url'] = $author['url'][0];
 		}
-		if ( array_key_exists( 'name', $author ) && is_array( $author['name'] ) ) {
-			$author['name'] = $author['name'][0];
+		if ( ! array_key_exists( 'name', $author ) ) {
+			$author['name'] = __( 'an author', 'indieweb-post-kinds' );
+		}
+		if ( is_array( $author['name'] ) ) {
+				$author['name'] = $author['name'][0];
 		}
 
 		// If no filter generated the card, generate the card.

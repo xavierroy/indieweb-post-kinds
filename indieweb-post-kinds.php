@@ -7,7 +7,7 @@
  * Plugin Name: Post Kinds
  * Plugin URI: https://wordpress.org/plugins/indieweb-post-kinds/
  * Description: Ever want to reply to someone else's post with a post on your own site? Or to "like" someone else's post, but with your own site?
- * Version: 3.1.0
+ * Version: 3.1.2
  * Author: David Shanske
  * Author URI: https://david.shanske.com
  * Text Domain: indieweb-post-kinds
@@ -20,17 +20,27 @@ if ( ! defined( 'POST_KINDS_KSES' ) ) {
 
 
 
+if ( ! file_exists( plugin_dir_path( __FILE__ ) . 'includes/parse-this/parse-this.php' ) ) {
+	add_action( 'admin_notices', array( 'Post_Kinds_Plugin', 'parse_this_error' ) );
+}
+
 add_action( 'plugins_loaded', array( 'Post_Kinds_Plugin', 'plugins_loaded' ) );
 add_action( 'init', array( 'Post_Kinds_Plugin', 'init' ) );
 
 class Post_Kinds_Plugin {
-	public static $version = '3.1.0';
+	public static $version = '3.1.2';
 	public static function init() {
 		// Add Kind Taxonomy.
 		require_once plugin_dir_path( __FILE__ ) . 'includes/class-post-kind.php';
 		require_once plugin_dir_path( __FILE__ ) . 'includes/class-kind-taxonomy.php';
 		Kind_Taxonomy::init();
 		Kind_Taxonomy::register();
+	}
+
+	public static function parse_this_error() {
+		$class   = 'notice notice-error';
+		$message = __( 'Parse This is not installed. Please advise the developer', 'indieweb-post-kinds' );
+		printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), esc_html( $message ) );
 	}
 	public static function plugins_loaded() {
 		load_plugin_textdomain( 'indieweb-post-kinds', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
@@ -46,6 +56,10 @@ class Post_Kinds_Plugin {
 		// Plugin Specific Kind Customizations
 		require_once plugin_dir_path( __FILE__ ) . '/includes/class-kind-plugins.php';
 		add_action( 'init', array( 'Kind_Plugins', 'init' ) );
+
+		// Enhance Media Metadata
+		require_once plugin_dir_path( __FILE__ ) . 'includes/class-media-metadata.php';
+		add_action( 'init', array( 'Media_Metadata', 'init' ) );
 
 		// Config Settings.
 		require_once plugin_dir_path( __FILE__ ) . 'includes/class-kind-config.php';
@@ -64,10 +78,8 @@ class Post_Kinds_Plugin {
 		require_once plugin_dir_path( __FILE__ ) . 'includes/class-kind-view.php';
 		add_action( 'init', array( 'Kind_View', 'init' ) );
 
-		require_once 'vendor/autoload.php';
-
 		// Parse This
-		require_once plugin_dir_path( __FILE__ ) . 'parse-this/parse-this.php';
+		require_once plugin_dir_path( __FILE__ ) . 'includes/parse-this/parse-this.php';
 
 		// Load stylesheets.
 		add_action( 'wp_enqueue_scripts', array( 'Post_Kinds_Plugin', 'style_load' ) );

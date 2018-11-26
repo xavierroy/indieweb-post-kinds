@@ -47,6 +47,7 @@ function clearPostProperties() {
 		'cite_name',
 		'cite_summary',
 		'cite_tags',
+		'cite_media',
 		'cite_author_name',
 		'cite_author_url',
 		'cite_author_photo',
@@ -74,6 +75,10 @@ function clearPostProperties() {
 		$.each( fieldIds, function( count, val ) {
 			document.getElementById( val ).value = '';
 		});
+		$( '#kind-media-container' ).addClass( 'hidden' );
+		$( '#kind-media-container' ).children( 'img' ).hide();
+		$( '#add-kind-media' ).show();
+
 }
 
 function addhttp( url ) {
@@ -215,40 +220,53 @@ function changeSettings() {
 			hideReply();
 			hideRSVP();
 			hideTime();
+			hideMedia();
 			break;
 		case 'article':
 			showTitle();
 			hideReply();
 			hideRSVP();
 			hideTime();
+			hideMedia();
 			break;
 		case 'issue':
 			showTitle();
 			showReply();
 			hideRSVP();
 			hideTime();
+			hideMedia();
 			break;
 		case 'listen':
 		case 'jam':
 		case 'watch':
+			hideTitle();
+			showReply();
+			hideRSVP();
+			showTime();
+			hideMedia();
+			break;
+		case 'photo':
 		case 'video':
 		case 'audio':
 			hideTitle();
 			showReply();
 			hideRSVP();
 			showTime();
+			showMedia();
 			break;
 		case 'rsvp':
 			showReply();
 			hideTitle();
 			hideTime();
 			showRSVP();
+			hideMedia();
 			break;
 		default:
 			showReply();
 			hideTime();
 			hideTitle();
 			hideRSVP();
+			hideMedia();
 	}
 }
 
@@ -259,6 +277,15 @@ function showReply() {
 function hideReply() {
 	$( '#replybox-meta' ).addClass( 'hidden' );
 }
+
+function showMedia() {
+	$( '#add-kind-media' ).removeClass( 'hidden' );
+}
+
+function hideMedia() {
+	$( '#add-kind-media' ).addClass( 'hidden' );
+}
+
 
 function showTitle() {
 	var titlediv = $( '#titlediv' ).detach();
@@ -286,6 +313,52 @@ function hideTime() {
 	$( '#kind-time' ).addClass( 'hide-if-js' );
 }
 
+function handleKindMediaWindow() {
+	'use strict';
+
+        var KindWindow, ImageData, json;
+
+	/**
+	 * If an instance of KindWindow already exists, then we can open it
+	 * rather than creating a new instance.
+	 */
+	if ( undefined !== KindWindow ) {
+		KindWindow.open();
+		return;
+	}
+
+	KindWindow = wp.media.frames.KindWindow = wp.media({
+		title: 'Attach',
+		button: {
+			text: 'Use this media'
+		},
+		multiple: false
+	});
+
+	KindWindow.on( 'select', function() {
+		json = KindWindow.state().get( 'selection' ).first().toJSON();
+		console.log( json );
+		if ( 0 > $.trim( json.url.length ) ) {
+			return;
+		}
+		$( '#cite_name' ).val( json.title );
+		$( '#cite_url' ).val( json.url );
+		$( '#cite_media' ).val( json.id );
+		$( '#cite_summary' ).val( json.description );
+		$( '#kind-media-container' )
+			.children( 'img' )
+			.attr( 'src', json.url )
+			.attr( 'alt', json.caption )
+			.attr( 'title', json.title )
+			.show()
+			.parent()
+			.removeClass( 'hidden' );
+
+		$( '#add-kind-media' ).hide();
+	});
+	KindWindow.open();
+
+}
 
 jQuery( document )
 	.on( 'change', '#taxonomy-kind', function( event ) {
@@ -322,6 +395,9 @@ jQuery( document )
 			$( '#kind-author' ).slideUp( 'fast' ).siblings( 'a.show-kind-author' ).focus();
 		}
 		event.preventDefault();
+	})
+	.on( 'click', '#add-kind-media', function( event ) {
+		event.preventDefault();
+		handleKindMediaWindow();
 	});
-
 });

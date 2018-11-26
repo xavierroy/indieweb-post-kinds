@@ -316,25 +316,36 @@ class Kind_Metabox {
 		$cite['featured']    = ifset( $_POST['cite_featured'] );
 
 		$author          = array();
+		$author['type']  = 'card';
 		$author['name']  = self::explode( ifset( $_POST['cite_author_name'] ) );
 		$author['url']   = self::explode( ifset( $_POST['cite_author_url'] ) );
 		$author['photo'] = self::explode( ifset( $_POST['cite_author_photo'] ) );
 		$author          = array_filter( $author );
-		$cite['author']  = $author;
-		$kind            = $mf2_post->get( 'kind', true );
-		$type            = Kind_Taxonomy::get_kind_info( $kind, 'property' );
+		if ( ! empty( $author ) ) {
+			$cite['author'] = jf2_to_mf2( $author );
+		}
+		$kind = $mf2_post->get( 'kind', true );
+		$type = Kind_Taxonomy::get_kind_info( $kind, 'property' );
 		// Make sure there is no overwrite of properties that might not be handled by the plugin
-		$fetch = $mf2_post->fetch( $type );
+		$fetch = array_filter( $mf2_post->fetch( $type ) );
 		if ( ! $fetch ) {
 			$fetch = array();
 		}
+		if ( ! empty( $_POST['cite_media'] ) ) {
+			$mf2_post->set( $type, array( $cite['url'] ) );
+			return;
+		}
 		$cite = array_merge( $fetch, $cite );
 		$cite = array_filter( $cite );
-		// Temporary code which assumes everything except a checkin is a citation
-		if ( 'checkin' === $kind ) {
-			$cite['type'] = 'card';
+		if ( 1 === count( $cite ) && array_key_exists( 'url', $cite ) ) {
+			$cite = $cite['url'];
 		} else {
-			$cite['type'] = 'cite';
+			// Temporary code which assumes everything except a checkin is a citation
+			if ( 'checkin' === $kind ) {
+				$cite['type'] = 'card';
+			} else {
+				$cite['type'] = 'cite';
+			}
 		}
 		$cite = jf2_to_mf2( $cite );
 		$mf2_post->set( $type, $cite );

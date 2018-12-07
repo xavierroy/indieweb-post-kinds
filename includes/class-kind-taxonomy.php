@@ -17,6 +17,7 @@ final class Kind_Taxonomy {
 		// Add the Correct Archive Title to Kind Archives.
 		add_filter( 'get_the_archive_title', array( 'Kind_Taxonomy', 'kind_archive_title' ), 10 );
 		add_filter( 'get_the_archive_description', array( 'Kind_Taxonomy', 'kind_archive_description' ), 10 );
+		add_filter( 'document_title_parts', array( 'Kind_Taxonomy', 'document_title_parts' ), 10 );
 
 		// Add Kind Permalinks.
 		add_filter( 'post_link', array( 'Kind_Taxonomy', 'kind_permalink' ), 10, 3 );
@@ -170,6 +171,11 @@ final class Kind_Taxonomy {
 			'index.php?year=$matches[2]&monthnum=$matches[3]&day=$matches[4]&kind=$matches[1]',
 			'top'
 		);
+		add_rewrite_rule(
+			'onthisday/([0-9]{2})/([0-9]{2})/?$',
+			'index.php?monthnum=$matches[1]&day=$matches[2]',
+			'top'
+		);
 	}
 
 	/**
@@ -268,7 +274,14 @@ final class Kind_Taxonomy {
 			} elseif ( is_day() ) {
 				/* translators: Daily archive title. 1: Date */
 				return sprintf( __( '%1$1s: %2$2s', 'indieweb-post-kinds' ), $title, get_the_date( _x( 'F j, Y', 'daily archives date format', 'indieweb-post-kinds' ) ) );
+			} elseif ( is_tag() ) {
+				return single_tag_title( $title, false );
 			}
+		}
+		$year = get_query_var( 'year' );
+		if ( is_day() && empty( $year ) ) {
+			/* translators: Daily archive title. 1: Date */
+			return sprintf( __( '%1$1s: %2$2s', 'indieweb-post-kinds' ), __( 'On This Day', 'indieweb-post-kinds' ), get_the_date( _x( 'F j', 'daily archives date format', 'indieweb-post-kinds' ) ) );
 		}
 		return $title;
 	}
@@ -285,6 +298,15 @@ final class Kind_Taxonomy {
 			}
 		}
 		return $title;
+	}
+
+	public static function document_title_parts( $parts ) {
+		$year = get_query_var( 'year' );
+		if ( is_day() && empty( $year ) ) {
+			/* translators: Daily archive title. 1: Date */
+			$parts['title'] = sprintf( __( '%1$1s: %2$2s', 'indieweb-post-kinds' ), __( 'On This Day', 'indieweb-post-kinds' ), get_the_date( _x( 'F j', 'daily archives date format', 'indieweb-post-kinds' ) ) );
+		}
+		return $parts;
 	}
 
 	/**
@@ -944,7 +966,8 @@ final class Kind_Taxonomy {
 		if ( 'post' !== get_post_type( $post_id ) ) {
 			return;
 		}
-		if ( count( wp_get_post_terms( $post_id, 'kind' ) ) <= 0 ) {
+		$count = wp_get_post_terms( $post_id, 'kind' );
+		if ( is_countable( $count ) && $count <= 0 ) {
 			set_post_kind( $post_id, get_option( 'kind_default' ) );
 		}
 	}
@@ -983,8 +1006,17 @@ final class Kind_Taxonomy {
 	public static function get_post_kind_link( $kind ) {
 		$term = get_term_by( 'slug', $kind, 'kind' );
 		if ( ! $term || is_wp_error( $term ) ) {
-			return false; }
+			return false;
+		}
 		return get_term_link( $term );
+	}
+
+	public static function get_post_kind_count( $kind ) {
+		$term = get_term_by( 'slug', $kind, 'kind' );
+		if ( ! $term || is_wp_error( $term ) ) {
+			return false;
+		}
+		return $term->count;
 	}
 
 	public static function get_post_kind_slug( $post = null ) {

@@ -14,6 +14,10 @@ function register_post_kind( $slug, $args ) {
 	Kind_Taxonomy::register_post_kind( $slug, $args );
 }
 
+function set_post_kind_visibility( $slug, $show = true ) {
+	Kind_Taxonomy::set_post_kind_visibility( $slug, $show );
+}
+
 /**
  * Retrieves an array of mf2 data from a post.
  *
@@ -207,8 +211,7 @@ function kind_video_gallery( $id, $args = null ) {
 	$return = '';
 	if ( $args['src'] ) {
 		$args    = wp_parse_args( $args, $defaults );
-		$return  = sprintf( '<p>%s</p>', get_the_title( $id ) );
-		$return .= wp_video_shortcode( $args );
+		$return = wp_video_shortcode( $args );
 	}
 	return $return;
 }

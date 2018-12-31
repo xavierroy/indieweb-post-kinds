@@ -49,7 +49,7 @@ if ( ! $embed ) {
 		echo __( ' from ', 'indieweb-post-kinds' ) . '<em>' . $site_name . '</em>';
 	}
 	if ( $published ) {
-		echo __( ' from ', 'indieweb-post-kinds' ) . 'Original Air Date: ' . $published . ;
+		echo __( ' from ', 'indieweb-post-kinds' ) . '<span>Original Air Date: ' . $published . '</span>';
 	}
 	if ( $duration ) {
 		echo '(<data class="p-duration" value="' . $duration . '">' . Kind_View::display_duration( $duration ) . '</data>)';
@@ -63,9 +63,12 @@ if ( $cite ) {
 		echo sprintf( '<blockquote class="e-summary">%1s</blockquote>', $embed );
 	} elseif ( array_key_exists( 'summary', $cite ) ) {
 		echo sprintf( '<blockquote class="e-summary">%1s</blockquote>', $cite['summary'] );
-	}
+
+	if ($cite['featured']){
+		echo sprintf( '<img class="u-featured" src ="%1s" />', $cite['featured'] );
 }
-<img src="$cite['featured']" />
+}
+}
 // Close Response
 ?>
 </section>

@@ -13,6 +13,7 @@ $site_name = Kind_View::get_site_name( $cite, $url );
 $title     = Kind_View::get_cite_title( $cite, $url );
 $embed     = self::get_embed( $url );
 $duration  = $mf2_post->get( 'duration', true );
+$published = ifset ( $cite['cite_published_date'] );
 if ( ! $duration ) {
 		$duration = calculate_duration( $mf2_post->get( 'dt-start' ), $mf2_post->get( 'dt-end' ) );
 }
@@ -47,6 +48,9 @@ if ( ! $embed ) {
 	if ( $site_name ) {
 		echo __( ' from ', 'indieweb-post-kinds' ) . '<em>' . $site_name . '</em>';
 	}
+	if ( $published ) {
+		echo __( ' from ', 'indieweb-post-kinds' ) . 'Original Air Date: ' . $published . ;
+	}
 	if ( $duration ) {
 		echo '(<data class="p-duration" value="' . $duration . '">' . Kind_View::display_duration( $duration ) . '</data>)';
 	}
@@ -61,7 +65,7 @@ if ( $cite ) {
 		echo sprintf( '<blockquote class="e-summary">%1s</blockquote>', $cite['summary'] );
 	}
 }
-
+<img src="$cite['featured']" />
 // Close Response
 ?>
 </section>

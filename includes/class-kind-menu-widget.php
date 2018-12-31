@@ -1,8 +1,8 @@
 <?php
 
-add_action( 'widgets_init', 'iwt_register_widget' );
+add_action( 'widgets_init', 'iwt_register_menu_widget' );
 
-function iwt_register_widget() {
+function iwt_register_menu_widget() {
 	register_widget( 'Kind_Menu_Widget' );
 }
 
@@ -42,7 +42,9 @@ class Kind_Menu_Widget extends WP_Widget {
 
 		// phpcs:ignore
 		echo $args['before_widget'];
-
+		if ( ! empty( $instance['title'] ) ) {
+			echo $args['before_title'] . apply_filters( 'widget_title', $instance['title'] ) . $args['after_title']; // phpcs:ignore
+		}
 		?>
 
 		<div id="kind-menu">
@@ -63,7 +65,7 @@ class Kind_Menu_Widget extends WP_Widget {
 				$count = $name;
 			}
 			printf(
-				'<li><a %4$s %5$s href="%2$s">%1$s%3$s</a></li>',
+				'<li><a %4$s %5$s type="text/html" href="%2$s">%1$s%3$s</a></li>',
 				Kind_Taxonomy::get_icon( $i ), // phpcs:ignore
 				esc_url( Kind_Taxonomy::get_post_kind_link( $i ) ),
 				$count, // phpcs:ignore
@@ -72,7 +74,7 @@ class Kind_Menu_Widget extends WP_Widget {
 			); // phpcs:ignore
 		}
 		if ( 1 === (int) $instance['all'] ) {
-			printf( '<li><a href="%2$s">%1$s%3$s</a></li>', Kind_Taxonomy::get_icon( 'firehose' ), esc_url( get_post_type_archive_link( 'post' ) ), esc_html__( 'All Posts', 'indieweb-post-kinds' ) ); // phpcs:ignore
+			printf( '<li><a type="text/html" href="%2$s">%1$s%3$s</a></li>', Kind_Taxonomy::get_icon( 'firehose' ), esc_url( get_post_type_archive_link( 'post' ) ), esc_html__( 'All Posts', 'indieweb-post-kinds' ) ); // phpcs:ignore
 		}
 		?>
 		</ul>
@@ -116,6 +118,9 @@ class Kind_Menu_Widget extends WP_Widget {
 		$instance  = wp_parse_args( (array) $instance, $defaults );
 		$termslist = (array) $instance['termslist'];
 		?>
+				<p><label for="title"><?php esc_html_e( 'Title: ', 'indieweb-post-kinds' ); ?></label>
+				<input type="text" size="30" name="<?php echo esc_attr( $this->get_field_name( 'title' ) ); ?> id="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>" value="
+		<?php echo esc_html( ifset( $instance['title'] ) ); ?>" /></p>
 		<div id="kind-all"> 
 		<?php
 		foreach ( get_option( 'kind_termslist', Kind_Taxonomy::get_kind_list() ) as $term ) {

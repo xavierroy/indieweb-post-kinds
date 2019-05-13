@@ -125,7 +125,8 @@ function getLinkPreview() {
 		},
 		data: {
 			url: $( '#cite_url' ).val(),
-			kind: $( 'input[name=\'tax_input[kind]\']:checked' ).val()
+			kind: $( 'input[name=\'tax_input[kind]\']:checked' ).val(),
+			follow: true
 		},
 		success: function( response ) {
 			var published;
@@ -365,7 +366,7 @@ jQuery( document )
 		changeSettings();
 		event.preventDefault();
 	})
-	.on( 'change', '#cite_url', function( event ) {
+	.on( 'blur', '#cite_url', function( event ) {
 		if ( false == checkUrl( $( '#cite_url' ).val() ) ) {
 			alert( 'Invalid URL' );
 		} else if ( '' === $( '#cite_name' ).val() ) {

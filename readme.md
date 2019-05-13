@@ -1,10 +1,10 @@
 # Post Kinds #
 **Contributors:** dshanske  
 **Tags:** indieweb, interaction, posts, webmention, share, like, scrobble  
-**Stable tag:** 3.1.6  
+**Stable tag:** 3.2.4  
 **Requires at least:** 4.9.6  
 **Requires PHP:** 5.4  
-**Tested up to:** 5.0.2  
+**Tested up to:** 5.2  
 **License:** GPLv2 or later  
 **License URI:** http://www.gnu.org/licenses/gpl-2.0.html  
 
@@ -158,6 +158,8 @@ posts.
  * **Watch** - video - watching a video
  * **Play** - playing a game
  * **Read** - reading a book, compared to online material
+ * **Eat** - Representing recording what you eat, perhaps for a food diary
+ * **Drink** - Similar to Eat
 
 ### What kinds do you plan to add in the future? ###
 
@@ -171,8 +173,6 @@ interface at this time.
  * **Trip** - Representing a trip...this represents a geographic journey and would require location awareness.
  * **Itinerary** - Itinerary - this would refer to scheduled transit, plane, train, etc. and does not require location awareness
  * **Tag** - Allows you to tag a post as being of a specific tag, or person tagging.
- * **Eat** - Representing recording what you eat, perhaps for a food diary
- * **Drink** - Similar to Eat
  * **Follow** - A post indicating you are now following someone's activities
  * **Mood** - Mood - Feeling
  * **Recipe** - Recipe
@@ -212,7 +212,9 @@ Add a function with your kind in the above format, hooking it in the init hook a
 Post Kinds automatically handles the display of archives of individual types. So to view all the posts marked as "note", for example, one could visit the URL http://www.YOURSITE.COM/kind/note/. 
 Simply replace YOURSITE.COM with your particular site name and the particular post kind name to access the others.
 
-You can also add the date /kind/note/2018/12/24 to see date-based archives. Or /kind/note/tag using the slug of a tag to see an archive of tagged posts of a specific kind
+You can also add the date /kind/note/2018/12/24 to see date-based archives. Or /kind/note/tag/tagname using the slug of a tag to see an archive of tagged posts of a specific kind
+
+For archives if you add exclude_kind as a query variable it will exclude specific kinds from the query `?exclude_kind=note`. You can also do this as /exclude/kind/note,checkin as it accepts multiple values
 
 ### Do you have RSS feeds for each kind? ###
 
@@ -230,6 +232,14 @@ So - `https://www.example.com/wp-admin/post-new.php?kindurl=URL&kind=like` will 
 ### Can I post automatically outside the Post Editor? ###
 
 Using the [Micropub](https://wordpress.org/plugins/micropub) plugin for WordPress is the easiest way to post outside of the Post Editor. This will work with any Micropub client.
+
+### I installed JetPack and I am no longer getting context added to my posts ###
+
+The JetPack sharing module conflicts with this plugin.
+
+### When will this plugin support Gutenberg? ###
+
+I am not sure. It is not a strict priority. At this time, there is no definite time for this support.
 
 ### How do I get support? ###
 
@@ -250,6 +260,40 @@ through future plugin updates.
 
 
 ## Changelog ##
+
+### 3.2.4 ( 2019-05-12 ) ###
+* Add exclude kind query var and rewrite
+* Adjust icons to relative values and prevent fatwigoo
+* Change checkin icon
+* Fix issue where post date was not being passed to widget
+* Attempt to fix permalink issue reported
+
+### 3.2.3 ( 2019-04-27 ) ###
+* Fix issue with attached media
+* Only suggest permalinks if not published
+* Fix storage issue with tags in citation
+* Hide media box when not media type
+* Fix duration storage issues
+
+### 3.2.2 ( 2019-03-24 ) ###
+* Fix issue with kindurl query
+* If no title try to generate a slug from the content or excerpt
+* Add food and drink templates and activate types
+
+### 3.2.1 ( 2019-03-10 ) ###
+* Revert load change
+
+### 3.2.0 ( 2019-03-10 ) ###
+* Switch from SVG Sprites to inline SVG
+* Adjust storage locations for included libraries
+* Refreshed version of Parse This that improves post type discovery for Micropub and parses more properties
+* Add basic template to display events and itineraries from Quill
+
+### 3.1.8 ( 2019-01-12 ) ###
+* Fix issue with Micropub posting caused by this plugin
+
+### 3.1.7 ( 2019-01-05 ) ###
+* Fix issue with new tag rewrite overwriting feed by changing tag kind archive to /kind/????/tag/????? 
 
 ### 3.1.6 ( 2018-12-31) ###
 * Fix Micropub bug introduced by Parse This change.

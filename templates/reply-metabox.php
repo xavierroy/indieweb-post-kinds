@@ -1,20 +1,14 @@
 <?php
 wp_nonce_field( 'replykind_metabox', 'replykind_metabox_nonce' );
 $mf2_post = new MF2_Post( get_post() );
-$type     = Kind_Taxonomy::get_kind_info( $mf2_post->get( 'kind' ), 'property' );
+$kind = $mf2_post->get( 'kind', true );
+$type     = Kind_Taxonomy::get_kind_info( $kind, 'property' );
 $cite     = $mf2_post->fetch( $type );
 $duration = divide_iso8601_duration( $mf2_post->get( 'duration' ) );
 
 if ( ! isset( $cite['url'] ) ) {
 	if ( array_key_exists( 'kindurl', $_GET ) && wp_http_validate_url( $_GET['kindurl'] ) ) {
-		$parse  = new Parse_This( $_GET['kindurl'] );
-		$return = $parse->fetch();
-		if ( is_wp_error( $return ) ) {
-			return $return;
-		}
-		$parse->parse();
-		$cite   = $parse->get();
-		$author = ifset( $cite['author'], array() );
+		$cite = array( 'url' => $_GET['kindurl'] );
 	}
 }
 $author = ifset( $cite['author'], array() );
@@ -69,8 +63,9 @@ if ( isset( $cite['url'] ) && is_array( $cite['url'] ) ) {
 	<?php echo Kind_Metabox::rsvp_select( $mf2_post->get( 'rsvp', true ) ); ?>
 </p>
 <p id="kind-media hide-if-no-js">
-<div id="kind-media-container" <?php echo isset( $cite['url'] ) ? '' : 'class="hidden"'; ?> >
-	<img src="<?php echo ifset( $cite['url'], '' ); ?>" alt="" title="" height="100" />
+<?php $show_media = ( isset( $cite['url'] ) && in_array( $kind, array( 'photo' ) ) ); ?>
+<div id="kind-media-container" <?php echo ( $show_media ) ? '' : 'class="hidden"'; ?> >
+<img src="<?php echo ifset( $cite['url'], '' ); ?>" alt="" title="" height="100" />
 	</div>
 	<input type="hidden" value="" id="cite_media" name="cite_media">
 </p>

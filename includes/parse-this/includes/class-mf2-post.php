@@ -5,22 +5,22 @@
  * @package Post Kinds
  * Assists in retrieving/saving microformats 2 properties from a post
  */
-class MF2_Post {
+class MF2_Post implements ArrayAccess {
 	public $uid;
-	public $post_author;
+	public $_post_author;
 	public $author;
 	public $publication;
 	public $published;
 	public $updated;
 	public $content;
 	public $summary;
-	public $post_parent;
+	public $_post_parent;
 	public $kind;
 	public $url;
 	public $name;
 	public $category = array();
 	public $featured;
-	private $mf2;
+	private $mf2 = array();
 
 	public function __construct( $post ) {
 		if ( is_numeric( $post ) ) {
@@ -35,57 +35,83 @@ class MF2_Post {
 			} else {
 				$id        = attachment_url_to_postid( $post );
 				$this->uid = $id;
-				$post      = id;
-			}
-		}
-		$_mf2_post = wp_cache_get( $this->uid, 'mf2_posts' );
-		if ( is_object( $_mf2_post ) && $_mf2_post instanceof MF2_Post ) {
-			if ( ! empty( $_mf2_post->url ) ) {
-				return $_mf2_post;
+				$post      = $id;
 			}
 		}
 		$post = get_post( $post );
 		if ( ! $post ) {
 			return false;
 		}
-		$this->post_author = $post->post_author;
-		$this->author      = self::get_author();
-		$this->post_parent = $post->post_parent;
-		$this->published   = mysql2date( DATE_W3C, $post->post_date );
-		$this->updated     = mysql2date( DATE_W3C, $post->post_modified );
-		$this->publication = get_bloginfo( 'title' );
+		$this->_post_author = $post->post_author;
+		$this->author       = self::get_author();
+		$this->_post_parent = $post->post_parent;
+		$this->published    = get_the_date( DATE_W3C, $post );
+		$this->updated      = get_the_modified_date( DATE_W3C, $post );
+		$this->publication  = get_bloginfo( 'title' );
 		if ( ! empty( $post->post_content ) ) {
 			$this->content = array(
 				'html'  => $post->post_content,
 				'value' => wp_strip_all_tags( $post->post_content ),
 			);
 		}
-		$this->summary = $post->post_excerpt;
-		$this->mf2     = $this->get_mf2meta();
-		$this->url     = get_permalink( $post->ID );
-		$this->name    = $post->post_title;
+		$this->summary  = $post->post_excerpt;
+		$this->mf2      = $this->get_mf2meta();
+		$this->url      = get_permalink( $post->ID );
+		$this->name     = $post->post_title;
+		$this->category = $this->get_categories( $post->ID );
 		if ( $this->uid === (int) $this->name ) {
 			unset( $this->name );
-		}
-		// Get a list of categories and extract their names
-		$post_categories = get_the_terms( $post->ID, 'category' );
-		if ( ! empty( $post_categories ) && ! is_wp_error( $post_categories ) ) {
-			$this->category = wp_list_pluck( $post_categories, 'name' );
-		}
-
-		// Get a list of tags and extract their names
-		$post_tags = get_the_terms( $post->ID, 'post_tag' );
-		if ( ! empty( $post_tags ) && ! is_wp_error( $post_tags ) ) {
-			$this->category = array_merge( $this->category, wp_list_pluck( $post_tags, 'name' ) );
-		}
-		if ( in_array( 'Uncategorized', $this->category, true ) ) {
-			unset( $this->category[ array_search( 'Uncategorized', $this->category, true ) ] );
 		}
 		if ( has_post_thumbnail( $post ) ) {
 			$this->featured = wp_get_attachment_url( get_post_thumbnail_id( $post ), 'full' );
 		}
 		$this->kind = self::get_post_kind();
-		wp_cache_set( $this->uid, $this, 'mf2_posts' );
+	}
+
+	public function offsetExists( $offset ) {
+		$vars = get_object_vars( $this );
+		if ( array_key_exists( $offset, $vars ) ) {
+			return true;
+		}
+		return array_key_exists( $offset, $this->mf2 );
+	}
+
+	public function offsetGet( $offset ) {
+		$vars = get_object_vars( $this );
+		if ( array_key_exists( $offset, $vars ) ) {
+			return $vars[ $offset ];
+		}
+		if ( array_key_exists( $offset, $this->mf2 ) ) {
+			return $this->mf2[ $offset ];
+		}
+		return null;
+	}
+
+	public function offsetSet( $offset, $value ) {
+		$this->set( $offset, $value );
+	}
+
+	public function offsetUnset( $offset ) {
+		$this->delete( $offset );
+	}
+
+	public function get_categories( $post_id ) {
+		$category = array();
+		// Get a list of categories and extract their names
+		$post_categories = get_the_terms( $post_id, 'category' );
+		if ( ! empty( $post_categories ) && ! is_wp_error( $post_categories ) ) {
+			$category = wp_list_pluck( $post_categories, 'name' );
+		}
+
+		// Get a list of tags and extract their names
+		$post_tags = get_the_terms( $post_id, 'post_tag' );
+		if ( ! empty( $post_tags ) && ! is_wp_error( $post_tags ) ) {
+			$category = array_merge( $this->category, wp_list_pluck( $post_tags, 'name' ) );
+		}
+		if ( in_array( 'Uncategorized', $category, true ) ) {
+			unset( $category[ array_search( 'Uncategorized', $category, true ) ] );
+		}
+		return $category;
 	}
 
 	private function get_post_kind() {
@@ -171,7 +197,7 @@ class MF2_Post {
 	 * @return boolean|array The result or false if does not exist.
 	 */
 	public function get_author() {
-		if ( ! $this->post_author ) {
+		if ( ! $this->_post_author ) {
 			return ifset( $this->meta['author'], false );
 		}
 		// Attachments may have been uploaded by a user but may have metadata for original author
@@ -181,9 +207,9 @@ class MF2_Post {
 		return array(
 			'type'       => array( 'h-card' ),
 			'properties' => array(
-				'name'  => array( get_the_author_meta( 'display_name', $this->post_author ) ),
-				'url'   => array( get_the_author_meta( 'user_url', $this->post_author ) ? get_the_author_meta( 'user_url', $this->post_author ) : get_author_posts_url( $this->post_author ) ),
-				'photo' => array( get_avatar_url( $this->post_author ) ),
+				'name'  => array( get_the_author_meta( 'display_name', $this->_post_author ) ),
+				'url'   => array( get_the_author_meta( 'user_url', $this->_post_author ) ? get_the_author_meta( 'user_url', $this->_post_author ) : get_author_posts_url( $this->_post_author ) ),
+				'photo' => array( get_avatar_url( $this->_post_author ) ),
 			),
 		);
 	}
@@ -194,6 +220,9 @@ class MF2_Post {
 	 */
 	private function get_mf2meta() {
 		$meta = get_post_meta( $this->uid );
+		if ( ! $meta ) {
+			return array();
+		}
 		if ( isset( $meta['response'] ) ) {
 			$response = maybe_unserialize( $meta['response'] );
 			// Retrieve from the old response array and store in new location.
@@ -245,30 +274,11 @@ class MF2_Post {
 				if ( is_string( $value ) ) {
 					$meta[ $key ] = array( $value );
 				} else {
-					$meta[ $key ] = self::ensure_mf2( $key, $value );
+					$meta[ $key ] = $value;
 				}
 			}
 		}
 		return array_filter( $meta );
-	}
-
-	// To fix issues with possible errors with mf2 parsing
-	private function ensure_mf2( $key, $value ) {
-		if ( ! is_array( $value ) ) {
-			return $value;
-		}
-		foreach ( $value as $k => $v ) {
-			$value[ $k ] = self::ensure_mf2( $key, $v );
-		}
-		if ( ! wp_is_numeric_array( $value ) && ! isset( $value['type'] ) ) {
-			// These were the only two ones used before the enhancement
-			if ( 'checkin' === $key ) {
-				$value['type'] = 'h-card';
-			} else {
-				$value['type'] = 'h-cite';
-			}
-		}
-		return $value;
 	}
 
 	/**
@@ -291,12 +301,18 @@ class MF2_Post {
 			}
 			$properties = array_merge( $vars, $this->mf2 );
 			$properties = array_filter( $properties );
-			$return     = array(
-				'type'       => array( 'h-entry' ),
+			if ( isset( $properties['type'] ) ) {
+				$type = $properties['type'];
+				unset( $properties['type'] );
+			} else {
+				$type = array( 'h-entry' );
+			}
+			$return = array(
+				'type'       => $type,
 				'properties' => $properties,
 			);
 			if ( $single ) {
-				return mf2_to_jf2( $return );
+				$return = mf2_to_jf2( $return );
 			}
 			return $return;
 		}
@@ -457,12 +473,12 @@ class MF2_Post {
 		return $value;
 	}
 
-	public function jf2_to_mf2( $cite, $type = 'cite' ) {
-		if ( ! $cite || ! is_array( $cite ) | isset( $cite['properties'] ) ) {
-			return $cite;
+	public function jf2_to_mf2( $item, $type = 'cite' ) {
+		if ( is_array( $item ) && isset( $item['type'] ) && ! isset( $item['properties'] ) ) {
+			return jf2_to_mf2( $item );
 		}
-		$cite = ifset( $cite['type'], $type );
-		return jf2_to_mf2( $cite );
+		$item['type'] = ifset( $item['type'], $type );
+		return jf2_to_mf2( $item );
 	}
 
 	// Retrieve the right property to use for the link preview based on the kind.
@@ -498,7 +514,7 @@ class MF2_Post {
 
 	public function get_attached_media( $type, $post ) {
 		$posts = get_attached_media( $type, $post );
-		return wp_list_pluck( $posts, 'post_ID' );
+		return wp_list_pluck( $posts, 'ID' );
 	}
 
 	public function get_audios() {
@@ -667,24 +683,12 @@ class MF2_Post {
 		}
 		return array_filter( array_unique( $att_ids ) );
 	}
-
-	public static function clean_post_cache( $post_id ) {
-		wp_cache_delete( $post_id, 'mf2_posts' );
-		self::cache_last_modified();
-	}
-
-	public static function clean_cache_meta( $empty, $post_id ) {
-		self::clean_post_cache( $post_id );
-	}
-
-	public static function cache_last_modified() {
-		wp_cache_set( 'last_changed', microtime(), 'mf2_posts' );
-	}
-
 }
 
+function get_mf2_post( $post_id ) {
+	if ( $post_id instanceof MF2_Post ) {
+		return $post_id;
+	}
+	return new MF2_Post( $post_id );
+}
 
-add_action( 'added_post_meta', array( 'MF2_Post', 'clean_cache_meta' ), 10, 2 );
-add_action( 'updated_post_meta', array( 'MF2_Post', 'clean_cache_meta' ), 10, 2 );
-add_action( 'deleted_post_meta', array( 'MF2_Post', 'clean_cache_meta' ), 10, 2 );
-add_action( 'clean_post_cache', array( 'MF2_Post', 'clean_post_cache' ) );

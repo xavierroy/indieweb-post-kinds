@@ -88,7 +88,7 @@ class Parse_This {
 	*/
 	public static function fetch_feed( $url ) {
 		if ( ! class_exists( 'SimplePie', false ) ) {
-			$path  = plugin_dir_path( __DIR__ ) . 'vendor/simplepie/simplepie/library/';
+			$path  = plugin_dir_path( __DIR__ ) . 'includes/simplepie/';
 			$files = array(
 				'SimplePie/Credit.php',
 				'SimplePie/Restriction.php',
@@ -111,9 +111,9 @@ class Parse_This {
 				'SimplePie.php',
 			);
 			foreach ( $files as $file ) {
-				//	if ( file_exists( $path . $file ) ) {
+				if ( file_exists( $path . $file ) ) {
 					require_once $path . $file;
-				//	}
+				}
 			}
 		}
 		require_once ABSPATH . WPINC . '/class-wp-feed-cache.php';
@@ -195,23 +195,40 @@ class Parse_This {
 				$title = $link->getAttribute( 'title' );
 				$type  = self::get_feed_type( $link->getAttribute( 'type' ) );
 				if ( in_array( $rel, array( 'alternate', 'feed' ), true ) && ! empty( $type ) ) {
-					$links[] = array(
-						'url'        => WP_Http::make_absolute_url( $href, $url ),
-						'type'       => 'feed',
-						'_feed_type' => $type,
-						'name'       => $title,
+					$links[] = array_filter(
+						array(
+							'url'        => WP_Http::make_absolute_url( $href, $url ),
+							'type'       => 'feed',
+							'_feed_type' => $type,
+							'name'       => $title,
+						)
 					);
 				}
 			}
 			// Check to see if the current page is an h-feed
 			$this->parse( array( 'feed' => true ) );
 			if ( isset( $this->jf2['type'] ) && 'feed' === $this->jf2['type'] ) {
-				$links[] = array(
-					'url'        => $url,
-					'type'       => 'feed',
-					'_feed_type' => 'microformats',
-					'name'       => $this->jf2['name'],
+				$links[] = array_filter(
+					array(
+						'url'        => $url,
+						'type'       => 'feed',
+						'_feed_type' => 'microformats',
+						'name'       => $this->jf2['name'],
+					)
 				);
+			} elseif ( isset( $this->jf2['items'] ) ) {
+				foreach ( $this->jf2['items'] as $item ) {
+					if ( 'feed' === $item['type'] && isset( $item['uid'] ) ) {
+						$links[] = array_filter(
+							array(
+								'url'        => $item['uid'],
+								'type'       => 'feed',
+								'_feed_type' => 'microformats',
+								'name'       => ifset( $item['name'] ),
+							)
+						);
+					}
+				}
 			}
 			// Sort feeds by priority
 			$rank = array(
@@ -233,11 +250,32 @@ class Parse_This {
 		return new WP_Error( 'unknown error', null, $this->content );
 	}
 
+	public function head( $url, $args ) {
+		$args          = array_filter( $args );
+		$response      = wp_safe_remote_head( $url, $args );
+		$response_code = wp_remote_retrieve_response_code( $response );
+		$content_type  = wp_remote_retrieve_header( $response, 'content-type' );
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+		switch ( $response_code ) {
+			case 200:
+				break;
+			default:
+				return new WP_Error( 'source_error', wp_remote_retrieve_response_message( $response ), array( 'status' => $response_code ) );
+		}
+
+		if ( preg_match( '#(image|audio|video|model)/#is', $content_type ) ) {
+			return new WP_Error( 'content-type', 'Content Type is Media' );
+		}
+		return $content_type;
+	}
+
+
 	/**
 	 * Downloads the source's via server-side call for the given URL.
 	 *
 	 * @param string $url URL to scan.
-	 * @param boolean $is_feed Force it to think this is an RSS/Atom feed
 	 * @return WP_Error|boolean WP_Error if invalid and true if successful
 	 */
 	public function fetch( $url = null ) {
@@ -259,29 +297,29 @@ class Parse_This {
 				return;
 			}
 		}
-
-		$args          = array(
+		$user_agent = 'Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:57.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36 Parse This/WP';
+		$args       = array(
 			'timeout'             => 15,
 			'limit_response_size' => 1048576,
 			'redirection'         => 5,
 			// Use an explicit user-agent for Parse This
-			'user-agent'          => 'Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:57.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36 Parse This/WP',
 		);
-		$response      = wp_safe_remote_head( $url, $args );
-		$response_code = wp_remote_retrieve_response_code( $response );
-		$content_type  = wp_remote_retrieve_header( $response, 'content-type' );
-		if ( is_wp_error( $response ) ) {
-			return $response;
-		}
-		switch ( $response_code ) {
-			case 200:
-				break;
-			default:
-				return new WP_Error( 'source_error', wp_remote_retrieve_response_message( $response ), array( 'status' => $response_code ) );
-		}
-
-		if ( preg_match( '#(image|audio|video|model)/#is', $content_type ) ) {
-			return new WP_Error( 'content-type', 'Content Type is Media' );
+		$content_type = self::head( $url, $args );
+		if ( is_wp_error( $content_type ) ) {
+			if ( 'source_error' === $content_type->get_error_code() ) {
+				$data = $content_type->get_error_data();
+				if ( in_array( $data['status'], array( 403, 415 ), true ) ) {
+					$args['user-agent'] = $user_agent;
+					$content_type       = self::head( $url, $args );
+					if ( is_wp_error( $content_type ) ) {
+						return $content_type;
+					}
+				} else {
+					return $content_type;
+				}
+			} else {
+				return $content_type;
+			}
 		}
 
 		// Strip any character set off the content type
@@ -326,10 +364,12 @@ class Parse_This {
 
 	public function parse( $args = array() ) {
 		$defaults = array(
-			'alternate' => false, // check for rel-alternate jf2 or mf2 feed
-			'return'    => 'single', // Options are single, feed, or TBC mention
-			'follow'    => false, // If set to true h-card and author properties with external urls will be retrieved parsed and merged into the return
-			'limit'     => 150, // Limit the number of children returned.
+			'alternate'  => false, // check for rel-alternate jf2 or mf2 feed
+			'return'     => 'single', // Options are single, feed, or TBC mention
+			'follow'     => false, // If set to true h-card and author properties with external urls will be retrieved parsed and merged into the return
+			'limit'      => 150, // Limit the number of children returned.
+			'html'       => true, // If mf2 parsing does not work look for html parsing
+			'references' => true, // Store nested citations as references per the JF2 spec
 		);
 		$args     = wp_parse_args( $args, $defaults );
 		// If not an option then revert to single
@@ -360,6 +400,13 @@ class Parse_This {
 			}
 			$this->jf2 = Parse_This_MF2::parse( $content, $this->url, $args );
 		}
+		if ( ! isset( $this->jf2['url'] ) ) {
+			$this->jf2['url'] = $this->url;
+		}
+		// If the HTML argument is not true return at this point
+		if ( ! $args['html'] ) {
+			return;
+		}
 		if ( ! class_exists( 'Parse_This_HTML', false ) ) {
 			require_once plugin_dir_path( __FILE__ ) . '/class-parse-this-html.php';
 		}
@@ -370,9 +417,12 @@ class Parse_This {
 			return;
 		}
 		// If the parsed jf2 is missing any sort of content then try to find it in the HTML
-		$more = array_intersect( array_keys( $this->jf2 ), array( 'name', 'summary', 'content' ) );
+		$more = array_intersect( array_keys( $this->jf2 ), array( 'summary', 'content', 'references' ) );
 		if ( empty( $more ) && $this->doc instanceof DOMDocument ) {
 			$this->jf2 = array_merge( $this->jf2, Parse_This_HTML::parse( $this->doc, $this->url ) );
+		}
+		if ( ! isset( $this->jf2['url'] ) ) {
+			$this->jf2['url'] = $this->url;
 		}
 
 	}

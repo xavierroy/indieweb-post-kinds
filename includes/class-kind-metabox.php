@@ -75,7 +75,7 @@ class Kind_Metabox {
 
 			wp_enqueue_script(
 				'jquery-ui-timepicker',
-				plugins_url( 'node_modules/timepicker/jquery.timepicker.min.js', dirname( __FILE__ ) ),
+				plugins_url( 'js/jquery.timepicker.min.js', dirname( __FILE__ ) ),
 				array( 'jquery' ),
 				self::$version,
 				true
@@ -83,7 +83,7 @@ class Kind_Metabox {
 
 			wp_enqueue_script(
 				'jquery-datepair',
-				plugins_url( 'node_modules/datepair.js/dist/jquery.datepair.min.js', dirname( __FILE__ ) ),
+				plugins_url( 'js/jquery.datepair.min.js', dirname( __FILE__ ) ),
 				array( 'jquery' ),
 				self::$version,
 				true
@@ -112,7 +112,7 @@ class Kind_Metabox {
 
 			wp_enqueue_script(
 				'moment',
-				plugins_url( 'node_modules/moment/min/moment.min.js', dirname( __FILE__ ) ),
+				plugins_url( 'js/moment.min.js', dirname( __FILE__ ) ),
 				array( 'jquery' ),
 				'2.20.1',
 				true
@@ -281,22 +281,24 @@ class Kind_Metabox {
 			'duration_minutes' => '',
 			'duration_seconds' => '',
 		);
-		if ( array_intersect_key( $duration_keys, $_POST ) ) {
-			$durations = array(
-				'Y' => ifset( $_POST['duration_years'] ),
-				'M' => ifset( $_POST['duration_months'] ),
-				'D' => ifset( $_POST['duration_days'] ),
-				'H' => ifset( $_POST['duration_hours'] ),
-				'I' => ifset( $_POST['duration_minutes'] ),
-				'S' => ifset( $_POST['duration_seconds'] ),
-			);
-			$durations = array_filter( $durations );
-			$duration  = build_iso8601_duration( $durations );
-
-		} else {
+		$durations     = array(
+			'Y' => ifset( $_POST['duration_years'] ),
+			'M' => ifset( $_POST['duration_months'] ),
+			'D' => ifset( $_POST['duration_days'] ),
+			'H' => ifset( $_POST['duration_hours'] ),
+			'I' => ifset( $_POST['duration_minutes'] ),
+			'S' => ifset( $_POST['duration_seconds'] ),
+		);
+		$durations     = array_filter( $durations );
+		if ( ! empty( $durations ) ) {
+			$duration = build_iso8601_duration( $durations );
+		} elseif ( isset( $start ) && isset( $end ) ) {
 			$duration = calculate_duration( $start, $end );
+			if ( $duration instanceof DateInterval ) {
+				$duration = date_interval_to_iso8601( $duration );
+			}
 		}
-		if ( $duration ) {
+		if ( ! empty( $duration ) ) {
 			$mf2_post->set( 'duration', $duration );
 		} else {
 			$mf2_post->delete( 'duration' );
@@ -351,6 +353,8 @@ class Kind_Metabox {
 				// Temporary code which assumes everything except a checkin is a citation
 				if ( 'checkin' === $kind ) {
 					$cite['type'] = 'card';
+				} elseif ( in_array( $kind, array( 'drink', 'eat' ), true ) ) {
+					$cite['type'] = 'food';
 				} else {
 					$cite['type'] = 'cite';
 				}

@@ -1,7 +1,7 @@
 # Post Kinds #
 **Contributors:** dshanske  
 **Tags:** indieweb, interaction, posts, webmention, share, like, scrobble  
-**Stable tag:** 3.2.4  
+**Stable tag:** 3.2.6  
 **Requires at least:** 4.9.6  
 **Requires PHP:** 5.4  
 **Tested up to:** 5.2  
@@ -260,6 +260,16 @@ through future plugin updates.
 
 
 ## Changelog ##
+
+### 3.2.6 ( 2019-05-16 ) ###
+* Only allow citations for more than one video until improvement to media display
+* Adjust inline style again at request of theme developer
+* Fix issue with WordPress filters not being used by moving Post Kinds additions to before they are run
+* Add Nag for Classic Editor
+
+### 3.2.5 ( 2019-05-14 ) ###
+* Merge in update from Parse This that did not make it into 3.2.4 fixing saving of citation tags
+* Fix issue in new markup
 
 ### 3.2.4 ( 2019-05-12 ) ###
 * Add exclude kind query var and rewrite

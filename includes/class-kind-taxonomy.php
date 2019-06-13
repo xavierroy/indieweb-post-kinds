@@ -936,7 +936,7 @@ final class Kind_Taxonomy {
 				'name'            => __( 'Sleeps', 'indieweb-post-kinds' ), // General name for the kind plural
 				'verb'            => __( 'Slept', 'indieweb-post-kinds' ), // The string for the verb or action (liked this)
 				'property'        => 'sleep', // microformats 2 property
-				'format'          => '', // Post Format that maps to this
+				'format'          => 'status', // Post Format that maps to this
 				'description'     => __( 'Sleep is a passive metrics post type that indicates how much time (and often a graph of how deeply) a person has slept.', 'indieweb-post-kinds' ),
 				'description-url' => 'https://indieweb.org/sleep',
 				'title'           => false, // Should this kind have an explicit title

@@ -1,6 +1,6 @@
 <?php
 /**
- * Post Kinds
+ * Post Kinds Enhanced
  *
  * @link    http://indieweb.org/Post_Kinds_Plugin
  * @package Post Kinds
@@ -12,13 +12,13 @@
  * Text Domain: indieweb-post-kinds
  * Domain Path:  /languages
  * GitHub Plugin URI:	xavierroy/indieweb-post-kinds
- * Version: 3.3.0.1
+ * Version: 3.3.0.2
  * Author: Xavier Roy
  * Author URI: https://xavierroy.com
  */
 
 if ( ! defined( 'POST_KINDS_KSES' ) ) {
-	define( 'POST_KINDS_KSES', false );
+	define( 'POST_KINDS_KSES', true );
 }
 
 

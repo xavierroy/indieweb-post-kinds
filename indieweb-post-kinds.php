@@ -12,7 +12,7 @@
  * Text Domain: indieweb-post-kinds
  * Domain Path:  /languages
  * GitHub Plugin URI:	xavierroy/indieweb-post-kinds
- * Version: 3.3.0.2
+ * Version: 3.3.0.3
  * Author: Xavier Roy
  * Author URI: https://xavierroy.com
  */
